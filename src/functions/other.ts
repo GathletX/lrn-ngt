@@ -37,6 +37,7 @@ export async function handleNuggets(
 
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
+    Hi, ${game.players[playerData.playerId].name}.
     Here's your daily Learning Nugget!
 
     ✨${randomNugget.category}:
@@ -61,7 +62,7 @@ export async function hasPlayerBeenNuggetted({
   clientId,
   spaceId,
   playerId
-}: PlayerQueryConfig) {
+}: PlayerQueryConfig): Promise<boolean> {
   const databaseLog = await getPlayerData(
     {
       clientId,
@@ -73,10 +74,12 @@ export async function hasPlayerBeenNuggetted({
 
   const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
 
-  if (Date.now() - databaseLog.val() >= minimumTime) return false;
-  console.log(
-    `🐔 ${playerId} has been nuggetted in the last 24 hours.`,
-    `⏰Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
-  );
-  return true;
+  if (Date.now() - databaseLog.val() <= minimumTime) {
+    console.log(
+      `🐔 ${playerId} has been nuggetted in the last 24 hours.`,
+      `⏰ Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
+    );
+    return true;
+  }
+  return false;
 }

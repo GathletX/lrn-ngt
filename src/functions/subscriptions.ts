@@ -4,6 +4,7 @@
  */
 
 import { Game } from "@gathertown/gather-game-client";
+import { isContext } from "vm";
 import { checkForCommand } from "../config/commands";
 require("dotenv").config();
 
@@ -56,24 +57,21 @@ export const subscribeToEvents = (game: Game): void => {
   );
 
   game.subscribeToEvent(
-    "playerMoves",
-    async ({ playerMoves }, { playerId }) => {
+    "playerJoins",
+    async ({ playerJoins }, { playerId, player }) => {
       if (playerId === game.engine?.clientUid) return;
-      //this condition means the player has entered a portal into another map/room
-      if (playerMoves.mapId) {
-        await hasPlayerBeenNuggetted({
-          clientId: "main-client",
-          spaceId: game.engine!.spaceId,
-          playerId: playerId!
-        }).then((hasBeenNuggetted) => {
-          if (hasBeenNuggetted) return;
-
-          handleNuggets(game, {
-            playerId: playerId!,
-            mapId: playerMoves.mapId!
-          });
+      await hasPlayerBeenNuggetted({
+        clientId: "main-client",
+        spaceId: game.engine!.spaceId,
+        playerId: playerId!
+      }).then(async (hasBeenNuggetted) => {
+        if (hasBeenNuggetted) return;
+        console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
+        await handleNuggets(game, {
+          playerId: playerId!,
+          mapId: player!.map!
         });
-      }
+      });
     }
   );
 
