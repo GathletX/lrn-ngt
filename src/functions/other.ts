@@ -54,9 +54,10 @@ export async function handlePlayerInfo(
 
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
-    Here's your daily Learning Nugget:
-    ${randomNugget.category}:
-    ${randomNugget.content}
+    Here's your daily Learning Nugget!
+    
+    ✨${randomNugget.category}:
+     ${randomNugget.content}
 
     -------------------------------`
   });
