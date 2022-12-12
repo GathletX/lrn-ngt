@@ -14,15 +14,15 @@ import { PlayerData, PlayerQueryConfig } from "./database.model";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.FIREBASE_DB_URL,
-  projectId: "gathletics-bot-db",
-  storageBucket: "gathletics-bot-db.appspot.com",
-  messagingSenderId: "114861086434",
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: "G-ZBV272HS0Y"
+  authDomain: "lrn-ngt.firebaseapp.com",
+  databaseURL: "https://lrn-ngt-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lrn-ngt",
+  storageBucket: "lrn-ngt.appspot.com",
+  messagingSenderId: "355875343024",
+  appId: "1:355875343024:web:7693a3c7b9d40a84d78975"
 };
 
 // Initialize Firebase
