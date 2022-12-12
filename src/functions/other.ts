@@ -7,32 +7,15 @@ import { getPlayerData, writePlayerData } from "./../database/database";
 import { Game } from "@gathertown/gather-game-client";
 import { sheets } from "./googleapi";
 import { LearningNugget } from "../models/nuggets.model";
+import { PlayerQueryConfig } from "../database/database.model";
 
-export async function handlePlayerInfo(
+export async function handleNuggets(
   game: Game,
   playerData: {
     playerId: string;
     mapId: string;
   }
 ) {
-  const databaseLog = await getPlayerData(
-    {
-      clientId: "main-client",
-      spaceId: game.engine!.spaceId,
-      playerId: playerData.playerId
-    },
-    "lastNugget"
-  );
-
-  const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
-
-  if (Date.now() - databaseLog.val() <= minimumTime) {
-    return console.log(
-      `🐔 ${playerData.playerId} has been nuggetted in the last 24 hours.`,
-      `⏰Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
-    );
-  }
-
   const { data } = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SPREADSHEET_ID,
     range: "rewritten!A2:B"
@@ -55,7 +38,7 @@ export async function handlePlayerInfo(
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
     Here's your daily Learning Nugget!
-    
+
     ✨${randomNugget.category}:
      ${randomNugget.content}
 
@@ -72,4 +55,28 @@ export async function handlePlayerInfo(
       lastNugget: Date.now()
     }
   );
+}
+
+export async function hasPlayerBeenNuggetted({
+  clientId,
+  spaceId,
+  playerId
+}: PlayerQueryConfig) {
+  const databaseLog = await getPlayerData(
+    {
+      clientId,
+      spaceId,
+      playerId
+    },
+    "lastNugget"
+  );
+
+  const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
+
+  if (Date.now() - databaseLog.val() >= minimumTime) return false;
+  console.log(
+    `🐔 ${playerId} has been nuggetted in the last 24 hours.`,
+    `⏰Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
+  );
+  return true;
 }

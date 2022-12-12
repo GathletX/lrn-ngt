@@ -13,7 +13,7 @@ require("dotenv").config();
     [spaceId:string]:{playerId:{currentlyEquippedWearables:{...},name:string,roles:{DEFAULT_BUILDER:boolean,OWNER:boolean,DEFAULT_MOD:boolean}}}
 */
 import { spaceRoles } from "./connection";
-import { handlePlayerInfo } from "./other";
+import { handleNuggets, hasPlayerBeenNuggetted } from "./other";
 
 export const subscribeToEvents = (game: Game): void => {
   game.subscribeToEvent(
@@ -55,17 +55,27 @@ export const subscribeToEvents = (game: Game): void => {
     }
   );
 
-  game.subscribeToEvent("playerMoves", ({ playerMoves }, { playerId }) => {
-    if (playerId === game.engine?.clientUid) return;
-    //this condition means the player has entered a portal into another map/room
-    if (playerMoves.mapId) {
-      //insert learningNugget info here
-      handlePlayerInfo(game, {
-        playerId: playerId!,
-        mapId: playerMoves.mapId
-      });
+  game.subscribeToEvent(
+    "playerMoves",
+    async ({ playerMoves }, { playerId }) => {
+      if (playerId === game.engine?.clientUid) return;
+      //this condition means the player has entered a portal into another map/room
+      if (playerMoves.mapId) {
+        await hasPlayerBeenNuggetted({
+          clientId: "main-client",
+          spaceId: game.engine!.spaceId,
+          playerId: playerId!
+        }).then((hasBeenNuggetted) => {
+          if (hasBeenNuggetted) return;
+
+          handleNuggets(game, {
+            playerId: playerId!,
+            mapId: playerMoves.mapId!
+          });
+        });
+      }
     }
-  });
+  );
 
   game.subscribeToEvent("playerChats", ({ playerChats }, context) => {
     const message = playerChats.contents;
