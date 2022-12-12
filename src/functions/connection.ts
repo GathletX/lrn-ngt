@@ -43,6 +43,7 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
         game.connect();
         await game.waitForInit();
         interceptEngineEvents(game);
+        setBotUsername(game, NPC_NAME || "LRN-NGT");
         console.log(`connected to ${parser[5]}`);
         games[parser[4]] = game;
       }
@@ -113,3 +114,7 @@ const interceptEngineEvents = ({ engine }: Game) => {
     wsOpen(evt);
   };
 };
+function setBotUsername(game: Game, name: string) {
+  game.enter({ isNpc: true, name });
+  setTimeout(() => game.exit(), 2000);
+}

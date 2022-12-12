@@ -35,11 +35,17 @@ export const database: Database = getDatabase(app);
 export const writePlayerData = (
   { clientId, spaceId, playerId }: PlayerQueryConfig,
   data: Partial<PlayerData>
-): Promise<void> =>
-  update(
-    ref(database, `${clientId}/spaces/${spaceId}/players/${playerId}`),
-    data
-  );
+): Promise<void> => {
+  try {
+    return update(
+      ref(database, `${clientId}/spaces/${spaceId}/players/${playerId}`),
+      data
+    );
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
+};
 
 export const getPlayerData = (
   { clientId, spaceId, playerId }: PlayerQueryConfig,

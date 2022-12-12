@@ -21,10 +21,11 @@ export async function handlePlayerInfo(
       spaceId: game.engine!.spaceId,
       playerId: playerData.playerId
     },
-    "lastNuggetTime"
+    "lastNugget"
   );
 
   const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
+
   if (Date.now() - databaseLog.val() <= minimumTime) {
     return console.log(
       `🐔 ${playerData.playerId} has been nuggetted in the last 24 hours.`,
@@ -53,6 +54,7 @@ export async function handlePlayerInfo(
 
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
+    Here's your daily Learning Nugget:
     ${randomNugget.category}:
     ${randomNugget.content}
 
