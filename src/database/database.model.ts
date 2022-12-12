@@ -1,5 +1,5 @@
 export interface PlayerData {
-  lastDaily: number;
+  lastNugget: number;
 }
 
 export interface PlayerQueryConfig {

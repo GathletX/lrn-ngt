@@ -6,6 +6,7 @@ import { getPlayerData, writePlayerData } from "./../database/database";
 
 import { Game } from "@gathertown/gather-game-client";
 import { sheets } from "./googleapi";
+import { LearningNugget } from "../models/nuggets.model";
 
 export async function handlePlayerInfo(
   game: Game,
@@ -20,44 +21,40 @@ export async function handlePlayerInfo(
       spaceId: game.engine!.spaceId,
       playerId: playerData.playerId
     },
-    `map_explanations/${playerData.mapId}/last_info_time/`
+    "lastNuggetTime"
   );
 
   const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
   if (Date.now() - databaseLog.val() <= minimumTime) {
     return console.log(
-      `⏰ ${playerData.playerId} has been briefed about ${playerData.mapId} in the last 24 hours.`,
-      `Last briefing time: ${new Date(databaseLog.val()).toLocaleString()}`
+      `🐔 ${playerData.playerId} has been nuggetted in the last 24 hours.`,
+      `⏰Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
     );
   }
 
   const { data } = await sheets.spreadsheets.values.get({
     spreadsheetId: process.env.SPREADSHEET_ID,
-    range: "Descriptions!A1:B"
+    range: "rewritten!A2:B"
   });
 
   if (!data?.values) return;
 
   //trying to make the data returned by sheets API simpler
-  //todo change this to refer to actual nugget help stuff
-
-  const organizedData: { map: string; description: string }[] = data.values
-    .map(([mapName, description]: any[]) => ({
-      map: mapName,
-      description
+  const organizedData: LearningNugget[] = data.values
+    .map(([category, content]: any[]) => ({
+      category,
+      content
     }))
-    .slice(1)
-    .filter((spreadsheetItem) => spreadsheetItem.description);
-  const description = organizedData.find(
-    (spreadsheetItem: { map: string; description: string }) =>
-      spreadsheetItem.map === playerData.mapId
-  )?.description;
+    .filter((nugget: LearningNugget) => nugget.content);
 
-  if (!description) return;
+  const randomNugget: LearningNugget =
+    organizedData[Math.floor(Math.random() * organizedData.length)];
+  if (!randomNugget) return;
 
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
-    ${description}
+    ${randomNugget.category}:
+    ${randomNugget.content}
 
     -------------------------------`
   });
@@ -69,7 +66,7 @@ export async function handlePlayerInfo(
       playerId: playerData.playerId
     },
     {
-      [`map_explanations/${playerData.mapId}`]: { last_info_time: Date.now() }
+      lastNugget: Date.now()
     }
   );
 }
