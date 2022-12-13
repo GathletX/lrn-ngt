@@ -37,11 +37,11 @@ export async function handleNuggets(
 
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
-    Hi, ${game.players[playerData.playerId].name}.
-    Here's your daily Learning Nugget!
+    𝙃𝙞, ${game.players[playerData.playerId].name}.
+    𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!
 
-    ✨${randomNugget.category}:
-     ${randomNugget.content}
+    ${randomNugget.category}:
+    ${randomNugget.content}
 
     -------------------------------`
   });
