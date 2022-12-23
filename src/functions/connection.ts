@@ -5,14 +5,13 @@
 
 import {
   Game,
+  PlayerInitInfo,
   ServerClientEvent,
   SpaceMemberInfo
 } from "@gathertown/gather-game-client";
-import { SPACE_URLS } from "../config/config";
+import { SPACE_URLS, BOT_OUTFIT, NPC_NAME, API_KEY } from "../config/config";
 
 require("dotenv").config();
-const API_KEY = process.env.API_KEY;
-const NPC_NAME = process.env.NPC_NAME;
 
 interface GameArray {
   [key: string]: Game;
@@ -41,11 +40,11 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
         // }
 
         getUserRoles(game);
-        // enterAsNPC(game); /*Remove comment line to enter space as NPC*/
+        enterAsNPC(game); /*Remove comment line to enter space as NPC*/
         game.connect();
         await game.waitForInit();
         interceptEngineEvents(game);
-        setBotUsername(game, NPC_NAME || "LRN-NGT");
+        // setBotUsername(game, NPC_NAME);
         console.log(`connected to ${parser[5]}`);
         games[parser[4]] = game;
       }
@@ -69,7 +68,10 @@ const registerCommands = (game: Game, commands: string[]): void => {
 };
 
 const enterAsNPC = (game: Game): void => {
-  const config = { ...(NPC_NAME && { name: NPC_NAME }) };
+  const config: PlayerInitInfo = {
+    ...(NPC_NAME && { name: NPC_NAME }),
+    ...(BOT_OUTFIT && { outfitString: BOT_OUTFIT })
+  };
 
   game.subscribeToConnection((connected: boolean) => {
     if (connected) {
