@@ -35,9 +35,11 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
           Promise.resolve({ apiKey: API_KEY! })
         );
 
-        if (commands) {
-          registerCommands(game, commands);
-        }
+        // No need to register commands. Uncomment this, if using commands.
+        // if (commands) {
+        //   registerCommands(game, commands);
+        // }
+
         getUserRoles(game);
         // enterAsNPC(game); /*Remove comment line to enter space as NPC*/
         game.connect();
