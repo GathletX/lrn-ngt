@@ -75,7 +75,6 @@ const enterAsNPC = (game: Game): void => {
 
   game.subscribeToConnection((connected: boolean) => {
     if (connected) {
-      console.log(`BOT CONNECTED, CALLING GAME.ENTER()`);
       game.enter({ isNpc: true, ...config });
     }
   });
