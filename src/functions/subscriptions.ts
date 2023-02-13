@@ -4,7 +4,6 @@
  */
 
 import { Game } from "@gathertown/gather-game-client";
-import { isContext } from "vm";
 import { checkForCommand } from "../config/commands";
 require("dotenv").config();
 

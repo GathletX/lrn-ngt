@@ -73,6 +73,8 @@ const enterAsNPC = (game: Game): void => {
     ...(BOT_OUTFIT && { outfitString: BOT_OUTFIT })
   };
 
+  console.log(config);
+
   game.subscribeToConnection((connected: boolean) => {
     if (connected) {
       game.enter({ isNpc: true, ...config });
