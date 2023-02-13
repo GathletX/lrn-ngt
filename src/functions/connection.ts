@@ -70,13 +70,12 @@ const registerCommands = (game: Game, commands: string[]): void => {
 const enterAsNPC = (game: Game): void => {
   const config: PlayerInitInfo = {
     ...(NPC_NAME && { name: NPC_NAME }),
-    ...(BOT_OUTFIT && { outfitString: BOT_OUTFIT })
+    ...(BOT_OUTFIT && { currentlyEquippedWearables: BOT_OUTFIT })
   };
-
-  console.log(config);
 
   game.subscribeToConnection((connected: boolean) => {
     if (connected) {
+      console.log(`BOT CONNECTED, CALLING GAME.ENTER()`);
       game.enter({ isNpc: true, ...config });
     }
   });
