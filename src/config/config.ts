@@ -10,7 +10,6 @@ export const SPACE_URLS = process.env.SPACE_URLS?.split(",") || [
 
 export const NPC_NAME = process.env.NPC_NAME || "LRN-NGT";
 
-//DBOutfit consists of a map of key/id
 export const BOT_OUTFIT: DBOutfit = {
   skin: "",
   hair: "",
