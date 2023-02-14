@@ -8,6 +8,8 @@ export const SPACE_URLS = process.env.SPACE_URLS?.split(",") || [
   "https://app.gather.town/app/arIfmcBhsz7Hiedn/Testisland-Office"
 ];
 
+export const DEFAULT_SPREADSHEET = process.env.DEFAULT_SPREADSHEET_ID;
+
 export const NPC_NAME = process.env.NPC_NAME || "LRN-NGT";
 
 export const BOT_OUTFIT: DBOutfit = {

@@ -14,7 +14,6 @@ import { PlayerData, PlayerQueryConfig } from "./database.model";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "lrn-ngt.firebaseapp.com",
@@ -51,15 +50,44 @@ export const getPlayerData = (
   { clientId, spaceId, playerId }: PlayerQueryConfig,
   propertyPath?: string
 ): Promise<DataSnapshot> => {
-  if (propertyPath && propertyPath?.[0] !== "/") {
-    propertyPath = "/" + propertyPath;
+  try {
+    if (propertyPath && propertyPath?.[0] !== "/") {
+      propertyPath = "/" + propertyPath;
+    }
+    return get(
+      ref(
+        database,
+        `${clientId}/spaces/${spaceId}/players/${playerId}${propertyPath}`
+      )
+    );
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
   }
-  return get(
-    ref(
-      database,
-      `${clientId}/spaces/${spaceId}/players/${playerId}${propertyPath}`
-    )
-  );
+};
+
+export const getSpaceSpreadsheet = ({
+  spaceId,
+  clientId
+}: Partial<PlayerQueryConfig>): Promise<DataSnapshot> => {
+  try {
+    return get(ref(database, `${clientId}/spaces/${spaceId}/spreadsheetUrl`));
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
+};
+
+export const getSpaceBotName = ({
+  spaceId,
+  clientId
+}: Partial<PlayerQueryConfig>): Promise<DataSnapshot> => {
+  try {
+    return get(ref(database, `${clientId}/spaces/${spaceId}/botName`));
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
 };
 
 // export const pushToArray = async (data:any): Promise<void> => {

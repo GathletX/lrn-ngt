@@ -1,4 +1,9 @@
-import { getPlayerData, writePlayerData } from "./../database/database";
+import { DEFAULT_SPREADSHEET } from "./../config/config";
+import {
+  getPlayerData,
+  getSpaceSpreadsheet,
+  writePlayerData
+} from "./../database/database";
 /**
  * Use this File to organize functions which do not pertain directly to subscriptions,
  * or which may be referenced by subscriptions and non-subscription functions.
@@ -16,8 +21,13 @@ export async function handleNuggets(
     mapId: string;
   }
 ) {
+  const spaceSpreadsheet = await getSpaceSpreadsheet({
+    clientId: "main-client",
+    spaceId: game.engine!.spaceId
+  });
+
   const { data } = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.SPREADSHEET_ID,
+    spreadsheetId: spaceSpreadsheet.val() ?? DEFAULT_SPREADSHEET,
     range: "rewritten!A2:B"
   });
 
