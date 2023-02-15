@@ -1,4 +1,5 @@
-import { getSpaceBotName } from "./../database/database";
+import { NPC_NAME } from "./../config/config";
+import { getSpaceConfig } from "./../database/database";
 /**
  * The connections file handles all of the websocket connection to the spaces.
  * It is not recommended to alter this file, unless you have a specific reason.
@@ -10,7 +11,7 @@ import {
   ServerClientEvent,
   SpaceMemberInfo
 } from "@gathertown/gather-game-client";
-import { API_KEY, BOT_OUTFIT, NPC_NAME, SPACE_URLS } from "../config/config";
+import { API_KEY, BOT_OUTFIT, SPACE_URLS } from "../config/config";
 
 require("dotenv").config();
 
@@ -69,13 +70,13 @@ const registerCommands = (game: Game, commands: string[]): void => {
 };
 
 const enterAsNPC = async (game: Game): Promise<void> => {
-  const botName = await getSpaceBotName({
+  const spaceConfig = await getSpaceConfig({
     clientId: "main-client",
     spaceId: game.engine?.spaceId
   });
 
   const config: PlayerInitInfo = {
-    name: botName.val() ?? NPC_NAME,
+    name: spaceConfig?.NPC_NAME ?? NPC_NAME,
     currentlyEquippedWearables: BOT_OUTFIT
   };
 

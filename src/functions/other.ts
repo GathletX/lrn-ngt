@@ -1,7 +1,8 @@
+import { SpaceConfig } from "./../database/database.model";
 import { DEFAULT_SPREADSHEET } from "./../config/config";
 import {
   getPlayerData,
-  getSpaceSpreadsheet,
+  getSpaceConfig,
   writePlayerData
 } from "./../database/database";
 /**
@@ -10,25 +11,21 @@ import {
  */
 
 import { Game } from "@gathertown/gather-game-client";
-import { sheets } from "./googleapi";
-import { LearningNugget } from "../models/nuggets.model";
 import { PlayerQueryConfig } from "../database/database.model";
+import { LearningNugget } from "../models/nuggets.model";
+import { sheets } from "./googleapi";
 
 export async function handleNuggets(
   game: Game,
   playerData: {
     playerId: string;
     mapId: string;
-  }
+  },
+  spaceConfig: SpaceConfig = {}
 ) {
-  const spaceSpreadsheet = await getSpaceSpreadsheet({
-    clientId: "main-client",
-    spaceId: game.engine!.spaceId
-  });
-
   const { data } = await sheets.spreadsheets.values.get({
-    spreadsheetId: spaceSpreadsheet.val() ?? DEFAULT_SPREADSHEET,
-    range: "rewritten!A2:B"
+    spreadsheetId: spaceConfig.SPREADSHEET_ID ?? DEFAULT_SPREADSHEET,
+    range: "A2:B"
   });
 
   if (!data?.values) return;
@@ -48,7 +45,7 @@ export async function handleNuggets(
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
     𝙃𝙞, ${game.players[playerData.playerId].name}.
-    𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!
+    ${spaceConfig.CUSTOM_MESSAGE || "𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!"}
 
     ${randomNugget.category}:
     ${randomNugget.content}
@@ -68,26 +65,25 @@ export async function handleNuggets(
   );
 }
 
-export async function hasPlayerBeenNuggetted({
-  clientId,
-  spaceId,
-  playerId
-}: PlayerQueryConfig): Promise<boolean> {
-  const databaseLog = await getPlayerData(
+export async function hasPlayerBeenNuggetted(
+  { clientId, spaceId, playerId }: PlayerQueryConfig,
+  coolDownPeriod = 1000 * 60 * 60 * 24 /*24 hours*/
+): Promise<boolean> {
+  const databaseLog = (await getPlayerData(
     {
       clientId,
       spaceId,
       playerId
     },
     "lastNugget"
-  );
+  )) as number;
 
-  const minimumTime = 1000 * 60 * 60 * 24; // 24 hours
+  console.log("cooldown Period", coolDownPeriod);
 
-  if (Date.now() - databaseLog.val() <= minimumTime) {
+  if (Date.now() - databaseLog <= coolDownPeriod) {
     console.log(
-      `🐔 ${playerId} has been nuggetted in the last 24 hours.`,
-      `⏰ Last nuggetted time: ${new Date(databaseLog.val()).toLocaleString()}`
+      `🐔 ${playerId} has been nuggetted in the cooldown period (${coolDownPeriod}).`,
+      `⏰ Last nuggetted time: ${new Date(databaseLog).toLocaleString()}`
     );
     return true;
   }

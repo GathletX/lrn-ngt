@@ -5,6 +5,7 @@
 
 import { Game } from "@gathertown/gather-game-client";
 import { checkForCommand } from "../config/commands";
+import { getSpaceConfig } from "../database/database";
 require("dotenv").config();
 
 /*
@@ -59,17 +60,30 @@ export const subscribeToEvents = (game: Game): void => {
     "playerJoins",
     async ({ playerJoins }, { playerId, player }) => {
       if (playerId === game.engine?.clientUid) return;
-      await hasPlayerBeenNuggetted({
+
+      const spaceConfig = await getSpaceConfig({
         clientId: "main-client",
-        spaceId: game.engine!.spaceId,
-        playerId: playerId!
-      }).then(async (hasBeenNuggetted) => {
+        spaceId: game.engine!.spaceId
+      });
+
+      await hasPlayerBeenNuggetted(
+        {
+          clientId: "main-client",
+          spaceId: game.engine!.spaceId,
+          playerId: playerId!
+        },
+        spaceConfig?.COOLDOWN_INTERVAL
+      ).then(async (hasBeenNuggetted) => {
         if (hasBeenNuggetted) return;
         console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
-        await handleNuggets(game, {
-          playerId: playerId!,
-          mapId: player!.map!
-        });
+        await handleNuggets(
+          game,
+          {
+            playerId: playerId!,
+            mapId: player!.map!
+          },
+          spaceConfig
+        );
       });
     }
   );
