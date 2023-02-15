@@ -21,10 +21,10 @@ export async function handleNuggets(
     playerId: string;
     mapId: string;
   },
-  spaceConfig: SpaceConfig = {}
+  spaceConfig: SpaceConfig | null
 ) {
   const { data } = await sheets.spreadsheets.values.get({
-    spreadsheetId: spaceConfig.SPREADSHEET_ID ?? DEFAULT_SPREADSHEET,
+    spreadsheetId: spaceConfig?.SPREADSHEET_ID ?? DEFAULT_SPREADSHEET,
     range: "A2:B"
   });
 
@@ -45,7 +45,7 @@ export async function handleNuggets(
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
     𝙃𝙞, ${game.players[playerData.playerId].name}.
-    ${spaceConfig.CUSTOM_MESSAGE || "𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!"}
+    ${spaceConfig?.CUSTOM_MESSAGE || "𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!"}
 
     ${randomNugget.category}:
     ${randomNugget.content}
