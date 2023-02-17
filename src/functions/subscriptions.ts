@@ -15,6 +15,7 @@ require("dotenv").config();
 */
 import { spaceRoles } from "./connection";
 import { handleNuggets, hasPlayerBeenNuggetted } from "./other";
+import { triggerChatWebhook } from "./webhooks";
 
 export const subscribeToEvents = (game: Game): void => {
   game.subscribeToEvent(
@@ -90,13 +91,22 @@ export const subscribeToEvents = (game: Game): void => {
 
   game.subscribeToEvent("playerChats", ({ playerChats }, context) => {
     const message = playerChats.contents;
-    const player: { id: string; name: string } = {
+    const player: { id: string; name: string; mapId: string } = {
       id: playerChats.senderId,
-      name: playerChats.senderName
+      name: playerChats.senderName,
+      mapId: context.player?.map!
     };
+
+    //this means it's not a message directed TO the bot, but a message for EVERYONE or NEARBY
+    if (playerChats.messageType !== "DM") return;
+
+    if (game.engine?.clientUid === player.id) {
+      return;
+    }
 
     //check to see if the message follows the command pattern
     const isCommand = message.match(/^\/(?<command>.*)/);
+
     if (isCommand) {
       console.log("🤖 CHAT MESSAGE IS A COMMAND, PARSING CHAT MESSAGE");
       const parser = isCommand.groups!.command.split(" ");
@@ -115,9 +125,10 @@ export const subscribeToEvents = (game: Game): void => {
       });
     }
 
-    if (game.engine?.clientUid === player.id) {
-      return;
-    }
+    console.log(
+      `🕊️ ${player.name} (${player.id}) sent chat to server: ${playerChats.contents}`
+    );
+    triggerChatWebhook(game, message, player);
   });
 };
 
