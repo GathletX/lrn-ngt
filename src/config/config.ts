@@ -10,7 +10,7 @@ export const SPACE_URLS = process.env.SPACE_URLS?.split(",") || [
 
 export const DEFAULT_SPREADSHEET = process.env.DEFAULT_SPREADSHEET_ID;
 
-export const NPC_NAME = process.env.NPC_NAME || "LRN-NGT";
+export const NPC_NAME = process.env.NPC_NAME || "Nugget (AI Bot)";
 
 export const BOT_OUTFIT: DBOutfit = {
   skin: "",
