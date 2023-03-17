@@ -80,7 +80,7 @@ export const subscribeToEvents = (game: Game): void => {
       });
 
       console.log(`Player ${playerId} joined space ${game.spaceId!}`);
-      console.log(playerData);
+      console.log(`PlayerData: ${JSON.stringify(playerData)}`);
 
       if (!playerData?.lastOnboarded) {
         await handleOnboarding(
