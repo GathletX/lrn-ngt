@@ -1,4 +1,4 @@
-import { SpaceConfig } from "./../database/database.model";
+import { PlayerData, SpaceConfig } from "./../database/database.model";
 import { DEFAULT_SPREADSHEET } from "./../config/config";
 import {
   getPlayerData,
@@ -65,27 +65,37 @@ export async function handleNuggets(
   );
 }
 
-export async function hasPlayerBeenNuggetted(
-  { clientId, spaceId, playerId }: PlayerQueryConfig,
+export function hasPlayerBeenNuggetted(
+  playerData: PlayerData,
   coolDownPeriod = 1000 * 60 * 60 * 24 /*24 hours*/
-): Promise<boolean> {
-  const databaseLog = (await getPlayerData(
-    {
-      clientId,
-      spaceId,
-      playerId
-    },
-    "lastNugget"
-  )) as number;
-
-  console.log("cooldown Period", coolDownPeriod);
-
-  if (Date.now() - databaseLog <= coolDownPeriod) {
+): boolean {
+  if (Date.now() - playerData?.lastNugget <= coolDownPeriod) {
     console.log(
-      `🐔 ${playerId} has been nuggetted in the cooldown period (${coolDownPeriod}).`,
-      `⏰ Last nuggetted time: ${new Date(databaseLog).toLocaleString()}`
+      `🐔 Player has been nuggetted in the cooldown period (${coolDownPeriod}).`,
+      `⏰ Last nuggetted time: ${new Date(
+        playerData.lastNugget
+      ).toLocaleString()}`
     );
     return true;
   }
   return false;
+}
+
+export async function handleOnboarding(
+  game: Game,
+  playerId: string,
+  mapId: string,
+  message?: string
+): Promise<void> {
+  message = message ? message : process.env.DEFAULT_ONBOARDING_MESSAGE;
+  if (!message) return console.warn("⚠ NO ONBOARDING MESSAGE SET");
+
+  game.chat(playerId, [], mapId, {
+    contents: message
+  });
+
+  return await writePlayerData(
+    { clientId: "main-client", playerId, spaceId: game.spaceId! },
+    { lastOnboarded: Date.now() }
+  );
 }

@@ -1,5 +1,6 @@
 export interface PlayerData {
   lastNugget: number;
+  lastOnboarded: number;
 }
 
 export interface SpaceConfig {
@@ -7,6 +8,7 @@ export interface SpaceConfig {
   NPC_NAME?: string;
   CUSTOM_MESSAGE?: string;
   COOLDOWN_INTERVAL?: number;
+  ONBOARDING_MESSAGE?: string;
 }
 
 export interface PlayerQueryConfig {

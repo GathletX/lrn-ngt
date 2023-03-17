@@ -1,3 +1,4 @@
+import { writePlayerData } from "./../database/database";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
  * or which may be referenced by subscriptions.
@@ -5,7 +6,8 @@
 
 import { Game } from "@gathertown/gather-game-client";
 import { checkForCommand } from "../config/commands";
-import { getSpaceConfig } from "../database/database";
+import { getPlayerData, getSpaceConfig } from "../database/database";
+import { PlayerData } from "../database/database.model";
 require("dotenv").config();
 
 /*
@@ -14,7 +16,11 @@ require("dotenv").config();
     [spaceId:string]:{playerId:{currentlyEquippedWearables:{...},name:string,roles:{DEFAULT_BUILDER:boolean,OWNER:boolean,DEFAULT_MOD:boolean}}}
 */
 import { spaceRoles } from "./connection";
-import { handleNuggets, hasPlayerBeenNuggetted } from "./other";
+import {
+  handleNuggets,
+  handleOnboarding,
+  hasPlayerBeenNuggetted
+} from "./other";
 import { triggerChatWebhook } from "./webhooks";
 
 export const subscribeToEvents = (game: Game): void => {
@@ -60,32 +66,47 @@ export const subscribeToEvents = (game: Game): void => {
   game.subscribeToEvent(
     "playerJoins",
     async ({ playerJoins }, { playerId, player }) => {
-      if (playerId === game.engine?.clientUid) return;
+      if (!playerId || playerId === game.engine?.clientUid) return;
 
       const spaceConfig = await getSpaceConfig({
         clientId: "main-client",
         spaceId: game.engine!.spaceId
       });
 
-      await hasPlayerBeenNuggetted(
-        {
-          clientId: "main-client",
-          spaceId: game.engine!.spaceId,
-          playerId: playerId!
-        },
+      const playerData: PlayerData = await getPlayerData({
+        clientId: "main-client",
+        spaceId: game.spaceId!,
+        playerId
+      });
+
+      console.log(`Player ${playerId} joined space ${game.spaceId!}`);
+      console.log(playerData);
+
+      if (!playerData?.lastOnboarded) {
+        await handleOnboarding(
+          game,
+          playerId,
+          player?.map!,
+          spaceConfig?.ONBOARDING_MESSAGE
+        );
+      }
+
+      const hasBeenNuggeted = hasPlayerBeenNuggetted(
+        playerData,
         spaceConfig?.COOLDOWN_INTERVAL
-      ).then(async (hasBeenNuggetted) => {
-        if (hasBeenNuggetted) return;
+      );
+
+      if (!hasBeenNuggeted) {
         console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
         await handleNuggets(
           game,
           {
-            playerId: playerId!,
-            mapId: player!.map!
+            playerId: playerId,
+            mapId: player?.map!
           },
           spaceConfig
         );
-      });
+      }
     }
   );
 

@@ -48,7 +48,7 @@ export const writePlayerData = (
 
 export const getPlayerData = (
   { clientId, spaceId, playerId }: PlayerQueryConfig,
-  propertyPath?: string
+  propertyPath: string = "/"
 ): Promise<PlayerData | any> => {
   try {
     if (propertyPath && propertyPath?.[0] !== "/") {
