@@ -8,10 +8,17 @@ export async function triggerChatWebhook(
 ) {
   const url = "https://hook.eu1.make.com/px8wuvrutbje22gr7amar6itl1hyqnl7";
   axios
-    .post(url, { message, playerName: player.name, playerId: player.id })
+    .post(url, {
+      message,
+      playerName: player.name,
+      playerId: player.id,
+      spaceId: game.spaceId!
+    })
     .then((response) => {
       console.log(
-        `✅ Chat Webhook triggered successfully for player: ${player.name}`
+        `✅ Chat Webhook triggered successfully for player ${
+          player.name
+        }, in space ${game.spaceId!}`
       );
       return response.data;
     })
