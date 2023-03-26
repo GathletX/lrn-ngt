@@ -9,7 +9,12 @@ import {
   ref,
   update
 } from "firebase/database";
-import { PlayerData, PlayerQueryConfig, SpaceConfig } from "./database.model";
+import {
+  PlayerData,
+  PlayerQueryConfig,
+  SpaceConfig,
+  SpaceFeatures
+} from "./database.model";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -72,6 +77,41 @@ export const getSpaceConfig = ({
 }: Partial<PlayerQueryConfig>): Promise<SpaceConfig> => {
   try {
     return get(ref(database, `${clientId}/spaces/${spaceId}/config`)).then(
+      (snapShot: DataSnapshot) => snapShot.val()
+    );
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
+};
+export const getSpaceFeatures = ({
+  spaceId,
+  clientId
+}: Partial<PlayerQueryConfig>): Promise<SpaceFeatures> => {
+  try {
+    return get(ref(database, `${clientId}/spaces/${spaceId}/features`)).then(
+      (snapShot: DataSnapshot) => snapShot.val()
+    );
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
+};
+
+export const getGlobalConfig = (): Promise<SpaceConfig> => {
+  try {
+    return get(ref(database, `common-features`)).then(
+      (snapShot: DataSnapshot) => snapShot.val()
+    );
+  } catch (e) {
+    console.error(e);
+    return Promise.reject();
+  }
+};
+
+export const getGlobalFeatures = (): Promise<Partial<SpaceFeatures>> => {
+  try {
+    return get(ref(database, `common-features`)).then(
       (snapShot: DataSnapshot) => snapShot.val()
     );
   } catch (e) {

@@ -1,4 +1,8 @@
-import { writePlayerData } from "./../database/database";
+import {
+  getGlobalConfig,
+  getGlobalFeatures,
+  getSpaceFeatures
+} from "./../database/database";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
  * or which may be referenced by subscriptions.
@@ -23,7 +27,19 @@ import {
 } from "./other";
 import { triggerChatWebhook } from "./webhooks";
 
-export const subscribeToEvents = (game: Game): void => {
+export const subscribeToEvents = async (game: Game): Promise<void> => {
+  // const COMMON_CONFIG = await getGlobalConfig();
+  //todo not ideal... needs to be updated when the firebase configs change
+  const COMMON_FEATURES = await getGlobalFeatures();
+  const spaceConfig = await getSpaceConfig({
+    clientId: "main-client",
+    spaceId: game.engine!.spaceId
+  });
+  const spaceFeatures = await getSpaceFeatures({
+    clientId: "main-client",
+    spaceId: game.engine!.spaceId
+  });
+
   game.subscribeToEvent(
     "playerSendsCommand",
     ({ playerSendsCommand }, context) => {
@@ -32,46 +48,42 @@ export const subscribeToEvents = (game: Game): void => {
     }
   );
 
-  game.subscribeToEvent(
-    "playerJoins",
-    ({ playerJoins }, { player, playerId }) => {
-      if (playerId === game.engine?.clientUid) return;
+  //todo if playerName is necessary, use the below
+  // game.subscribeToEvent(
+  //   "playerJoins",
+  //   ({ playerJoins }, { player, playerId }) => {
+  //     if (playerId === game.engine?.clientUid) return;
 
-      const isPlayerLoaded = new Promise<string>((resolve, reject) => {
-        let CURRENT_RETRY = 0;
-        const MAX_RETRIES = 20;
-        const interval = setInterval(() => {
-          const playerName = player?.name;
+  //     const isPlayerLoaded = new Promise<string>((resolve, reject) => {
+  //       let CURRENT_RETRY = 0;
+  //       const MAX_RETRIES = 20;
+  //       const interval = setInterval(() => {
+  //         const playerName = player?.name;
 
-          CURRENT_RETRY++;
-          if (CURRENT_RETRY >= MAX_RETRIES) {
-            reject(clearInterval(interval));
-          }
+  //         CURRENT_RETRY++;
+  //         if (CURRENT_RETRY >= MAX_RETRIES) {
+  //           reject(clearInterval(interval));
+  //         }
 
-          if (!playerName) {
-            return;
-          } else {
-            clearInterval(interval);
-            resolve(playerName);
-          }
-        }, 500);
-      });
+  //         if (!playerName) {
+  //           return;
+  //         } else {
+  //           clearInterval(interval);
+  //           resolve(playerName);
+  //         }
+  //       }, 500);
+  //     });
 
-      isPlayerLoaded.then((playerName: string) => {
-        //insert playerJoins behaviour here
-      });
-    }
-  );
+  //     isPlayerLoaded.then((playerName: string) => {
+  //       //insert playerJoins behaviour here
+  //     });
+  //   }
+  // );
 
   game.subscribeToEvent(
     "playerJoins",
     async ({ playerJoins }, { playerId, player }) => {
       if (!playerId || playerId === game.engine?.clientUid) return;
-
-      const spaceConfig = await getSpaceConfig({
-        clientId: "main-client",
-        spaceId: game.engine!.spaceId
-      });
 
       const playerData: PlayerData = await getPlayerData({
         clientId: "main-client",
@@ -91,21 +103,25 @@ export const subscribeToEvents = (game: Game): void => {
         );
       }
 
-      const hasBeenNuggeted = hasPlayerBeenNuggetted(
-        playerData,
-        spaceConfig?.COOLDOWN_INTERVAL
-      );
-
-      if (!hasBeenNuggeted) {
-        console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
-        await handleNuggets(
-          game,
-          {
-            playerId: playerId,
-            mapId: player?.map!
-          },
-          spaceConfig
+      if (
+        COMMON_FEATURES["learning-nuggets"] ||
+        spaceFeatures["learning-nuggets"]
+      ) {
+        const hasBeenNuggeted = hasPlayerBeenNuggetted(
+          playerData,
+          spaceConfig?.COOLDOWN_INTERVAL
         );
+        if (!hasBeenNuggeted) {
+          console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
+          await handleNuggets(
+            game,
+            {
+              playerId: playerId,
+              mapId: player?.map!
+            },
+            spaceConfig
+          );
+        }
       }
     }
   );
@@ -149,7 +165,10 @@ export const subscribeToEvents = (game: Game): void => {
     console.log(
       `🕊️ ${player.name} (${player.id}) sent chat to server: ${playerChats.contents}`
     );
-    triggerChatWebhook(game, message, player);
+
+    if (COMMON_FEATURES["open-ai"] || spaceFeatures["open-ai"]) {
+      triggerChatWebhook(game, message, player);
+    }
   });
 };
 
