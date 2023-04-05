@@ -29,7 +29,8 @@ export async function triggerChatWebhook(
     .then((openAIData) => {
       console.log(`🤖 The bot responded:`, openAIData);
       game.chat(player.id, [], player.mapId, {
-        contents: openAIData.trim()
+        contents: `
+        ${openAIData.trim()}`
       });
     })
     .catch((error) =>
@@ -60,15 +61,16 @@ function setupDelayedFeedback(
     () =>
       game.chat(player.id, [], player.mapId, {
         contents: `
-        Thinking...Blip, Blup, Blop...
+        Thinking... Blip, Blup, Blop...
         `
       }),
-    1000
+    2500
   );
   const secondDelayedResponse = setTimeout(
     () =>
       game.chat(player.id, [], player.mapId, {
-        contents: `This is taking longer than I expected...
+        contents: `
+        Just a little longer...
         `
       }),
     5000
