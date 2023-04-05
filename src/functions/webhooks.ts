@@ -39,7 +39,7 @@ export async function triggerChatWebhook(
       )
     )
     .finally(() => {
-      clearTimeout(delayedFeedback);
+      delayedFeedback.clear();
     });
 }
 
@@ -55,13 +55,29 @@ function sendImmediateFeedback(
 function setupDelayedFeedback(
   game: Game,
   player: { id: string; name: string; mapId: string }
-) {
-  return setTimeout(
+): { clear: Function } {
+  const firstDelayedResponse = setTimeout(
     () =>
       game.chat(player.id, [], player.mapId, {
-        contents: `Thinking...
-   Blip, Blup, Blop...`
+        contents: `
+        Thinking...Blip, Blup, Blop...
+        `
       }),
     1000
   );
+  const secondDelayedResponse = setTimeout(
+    () =>
+      game.chat(player.id, [], player.mapId, {
+        contents: `This is taking longer than I expected...
+        `
+      }),
+    5000
+  );
+
+  const clearScheduledResponses = () =>
+    [firstDelayedResponse, secondDelayedResponse].forEach((timeoutId) =>
+      clearTimeout(timeoutId)
+    );
+
+  return { clear: clearScheduledResponses };
 }
