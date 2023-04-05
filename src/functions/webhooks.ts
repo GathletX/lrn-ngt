@@ -1,4 +1,4 @@
-import { Game } from "@gathertown/gather-game-client";
+import { Game, Player } from "@gathertown/gather-game-client";
 import axios from "axios";
 
 export async function triggerChatWebhook(
@@ -6,7 +6,11 @@ export async function triggerChatWebhook(
   message: string,
   player: { id: string; name: string; mapId: string }
 ) {
+  sendImmediateFeedback(game, player);
+  const delayedFeedback = setupDelayedFeedback(game, player);
+
   const url = "https://hook.eu1.make.com/px8wuvrutbje22gr7amar6itl1hyqnl7";
+
   axios
     .post(url, {
       message,
@@ -33,5 +37,31 @@ export async function triggerChatWebhook(
         "❌ Webhook failed to trigger",
         error?.response?.data || error.message
       )
-    );
+    )
+    .finally(() => {
+      clearTimeout(delayedFeedback);
+    });
+}
+
+function sendImmediateFeedback(
+  game: Game,
+  player: { id: string; name: string; mapId: string }
+) {
+  game.chat(player.id, [], player.mapId, {
+    contents: "🤖 Prompt received!"
+  });
+}
+
+function setupDelayedFeedback(
+  game: Game,
+  player: { id: string; name: string; mapId: string }
+) {
+  return setTimeout(
+    () =>
+      game.chat(player.id, [], player.mapId, {
+        contents: `Thinking...
+   Blip, Blup, Blop...`
+      }),
+    1000
+  );
 }
