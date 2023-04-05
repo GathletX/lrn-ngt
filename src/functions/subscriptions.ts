@@ -19,7 +19,7 @@ require("dotenv").config();
     Note: spaceId here is the randomly generated characters before the space name, ie spaceId\\spaceName, not both parts
     [spaceId:string]:{playerId:{currentlyEquippedWearables:{...},name:string,roles:{DEFAULT_BUILDER:boolean,OWNER:boolean,DEFAULT_MOD:boolean}}}
 */
-import { spaceRoles } from "./connection";
+import { spaceRoles, spaceCapacities } from "./connection";
 import {
   handleNuggets,
   handleOnboarding,
@@ -47,38 +47,6 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       checkForCommand({ parser, game, playerSendsCommand, context });
     }
   );
-
-  //todo if playerName is necessary, use the below
-  // game.subscribeToEvent(
-  //   "playerJoins",
-  //   ({ playerJoins }, { player, playerId }) => {
-  //     if (playerId === game.engine?.clientUid) return;
-
-  //     const isPlayerLoaded = new Promise<string>((resolve, reject) => {
-  //       let CURRENT_RETRY = 0;
-  //       const MAX_RETRIES = 20;
-  //       const interval = setInterval(() => {
-  //         const playerName = player?.name;
-
-  //         CURRENT_RETRY++;
-  //         if (CURRENT_RETRY >= MAX_RETRIES) {
-  //           reject(clearInterval(interval));
-  //         }
-
-  //         if (!playerName) {
-  //           return;
-  //         } else {
-  //           clearInterval(interval);
-  //           resolve(playerName);
-  //         }
-  //       }, 500);
-  //     });
-
-  //     isPlayerLoaded.then((playerName: string) => {
-  //       //insert playerJoins behaviour here
-  //     });
-  //   }
-  // );
 
   game.subscribeToEvent(
     "playerJoins",
@@ -125,6 +93,19 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       }
     }
   );
+
+  game.subscribeToEvent("playerJoins", ({ playerJoins }, context) => {
+    const numberOfPlayer: number = Object.keys(game.players).length;
+    console.log(spaceCapacities[game.spaceId!]);
+    if (numberOfPlayer >= spaceCapacities[game.spaceId!] - 2) {
+      game.disconnect();
+
+      //todo test what happens when we try to call game.connect AND the space capacity is FULL
+      setTimeout(() => {
+        game.connect();
+      }, 30 * 1000); // 30 minutes
+    }
+  });
 
   game.subscribeToEvent("playerChats", ({ playerChats }, context) => {
     const message = playerChats.contents;

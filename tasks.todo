@@ -1,7 +1,7 @@
 LRN_NGT TODOS:
     ☐ @low Maybe have the bot react to nearby messages
-    ☐ @low scheduling the onboarding message
-    ☐ @low having the onboarding message be dynamically based on features available
+    ☐ @low Scheduling the onboarding message
+    ☐ @low Having the onboarding message be dynamically based on features available
 
     making movement more natural / slower:
         ☐ @low make the bot move randomly withing a preset range, turning, etc

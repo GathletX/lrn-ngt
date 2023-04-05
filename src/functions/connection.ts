@@ -20,10 +20,14 @@ interface GameArray {
 }
 
 interface MembersArray {
-  [key: string]: { [key: string]: SpaceMemberInfo };
+  [spaceId: string]: { [key: string]: SpaceMemberInfo };
+}
+interface SpaceCapacity {
+  [spaceId: string]: number;
 }
 
 export var spaceRoles: MembersArray = {};
+export const spaceCapacities: SpaceCapacity = {};
 
 export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
   return new Promise(async (resolve, reject) => {
@@ -41,6 +45,7 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
         //   registerCommands(game, commands);
         // }
 
+        getSpaceCapacity(game);
         getUserRoles(game);
         await enterAsNPC(game);
         game.connect();
@@ -87,11 +92,20 @@ const enterAsNPC = async (game: Game): Promise<void> => {
   });
 };
 
-const getUserRoles = (game: Game) => {
-  game.subscribeToEvent("spaceSetsSpaceMembers", (data, context) => {
-    spaceRoles[game?.spaceId?.split("\\")[0]!] =
-      data.spaceSetsSpaceMembers.members;
+const getSpaceCapacity = (game: Game) => {
+  game.subscribeToEvent("spaceSetsCapacity", ({ spaceSetsCapacity }) => {
+    spaceCapacities[game?.spaceId!] = spaceSetsCapacity.capacity;
   });
+};
+
+const getUserRoles = (game: Game) => {
+  game.subscribeToEvent(
+    "spaceSetsSpaceMembers",
+    ({ spaceSetsSpaceMembers }, context) => {
+      spaceRoles[game?.spaceId?.split("\\")[0]!] =
+        spaceSetsSpaceMembers.members;
+    }
+  );
 };
 
 const interceptEngineEvents = ({ engine }: Game) => {
