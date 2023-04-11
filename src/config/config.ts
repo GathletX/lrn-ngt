@@ -5,7 +5,7 @@ require("dotenv").config();
 export const API_KEY = process.env.API_KEY;
 //This should be the full URL, not just the spaceId\\spaceName
 export const SPACE_URLS = process.env.SPACE_URLS?.split(",") || [
-  "https://app.gather.town/app/mBEJlX1VdyUFOwQI/batch1175"
+  "https://app.gather.town/app/o9PWV3inJcJLV7u1/Scavenger%20Hunt"
 ];
 
 export const DEFAULT_SPREADSHEET = process.env.DEFAULT_SPREADSHEET_ID;

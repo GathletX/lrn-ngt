@@ -72,8 +72,8 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       }
 
       if (
-        COMMON_FEATURES["learning-nuggets"] ||
-        spaceFeatures["learning-nuggets"]
+        COMMON_FEATURES?.["learning-nuggets"] ||
+        spaceFeatures?.["learning-nuggets"]
       ) {
         const hasBeenNuggeted = hasPlayerBeenNuggetted(
           playerData,
@@ -95,15 +95,13 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
   );
 
   game.subscribeToEvent("playerJoins", ({ playerJoins }, context) => {
-    const numberOfPlayer: number = Object.keys(game.players).length;
-    console.log(spaceCapacities[game.spaceId!]);
-    if (numberOfPlayer >= spaceCapacities[game.spaceId!] - 2) {
-      game.disconnect();
+    const numberOfPlayers: number = Object.keys(game.players).length;
 
-      //todo test what happens when we try to call game.connect AND the space capacity is FULL
-      setTimeout(() => {
-        game.connect();
-      }, 30 * 1000); // 30 minutes
+    console.log("nPlayers:", numberOfPlayers);
+    console.log(spaceCapacities[game.spaceId!]);
+
+    if (numberOfPlayers >= spaceCapacities[game.spaceId!] - 2) {
+      game.disconnect();
     }
   });
 
@@ -147,7 +145,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       `🕊️ ${player.name} (${player.id}) sent chat to server: ${playerChats.contents}`
     );
 
-    if (COMMON_FEATURES["open-ai"] || spaceFeatures["open-ai"]) {
+    if (COMMON_FEATURES?.["open-ai"] || spaceFeatures?.["open-ai"]) {
       triggerChatWebhook(game, message, player);
     }
   });

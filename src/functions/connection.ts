@@ -28,6 +28,7 @@ interface SpaceCapacity {
 
 export var spaceRoles: MembersArray = {};
 export const spaceCapacities: SpaceCapacity = {};
+const spaceConnectionTimers: { [spaceId: string]: NodeJS.Timeout } = {};
 
 export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
   return new Promise(async (resolve, reject) => {
@@ -47,6 +48,7 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
 
         getSpaceCapacity(game);
         getUserRoles(game);
+        subscribeToDisconnection(game);
         await enterAsNPC(game);
         game.connect();
         await game.waitForInit();
@@ -139,6 +141,22 @@ const interceptEngineEvents = ({ engine }: Game) => {
     wsOpen(evt);
   };
 };
+function subscribeToDisconnection(game: Game) {
+  game.subscribeToConnection((connected: boolean) => {
+    if (!connected) {
+      console.log("❓ Connection Lost");
+      if (!spaceConnectionTimers?.[game.spaceId!])
+        spaceConnectionTimers[game.spaceId!] = setTimeout(
+          () => game.connect(),
+          1000 * 60 * 30
+        );
+      console.log("🪖 Adding reconnection attempt.", spaceConnectionTimers);
+    } else {
+      delete spaceConnectionTimers?.[game.spaceId!];
+    }
+  });
+}
+
 function setBotUsername(game: Game, name: string) {
   game.enter({ isNpc: true, name });
   setTimeout(() => game.exit(), 2000);
