@@ -20,10 +20,15 @@ interface GameArray {
 }
 
 interface MembersArray {
-  [key: string]: { [key: string]: SpaceMemberInfo };
+  [spaceId: string]: { [key: string]: SpaceMemberInfo };
+}
+interface SpaceCapacity {
+  [spaceId: string]: number;
 }
 
 export var spaceRoles: MembersArray = {};
+export const spaceCapacities: SpaceCapacity = {};
+const spaceConnectionTimers: { [spaceId: string]: NodeJS.Timeout } = {};
 
 export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
   return new Promise(async (resolve, reject) => {
@@ -41,7 +46,9 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
         //   registerCommands(game, commands);
         // }
 
+        getSpaceCapacity(game);
         getUserRoles(game);
+        subscribeToDisconnection(game);
         await enterAsNPC(game);
         game.connect();
         await game.waitForInit();
@@ -87,11 +94,20 @@ const enterAsNPC = async (game: Game): Promise<void> => {
   });
 };
 
-const getUserRoles = (game: Game) => {
-  game.subscribeToEvent("spaceSetsSpaceMembers", (data, context) => {
-    spaceRoles[game?.spaceId?.split("\\")[0]!] =
-      data.spaceSetsSpaceMembers.members;
+const getSpaceCapacity = (game: Game) => {
+  game.subscribeToEvent("spaceSetsCapacity", ({ spaceSetsCapacity }) => {
+    spaceCapacities[game?.spaceId!] = spaceSetsCapacity.capacity;
   });
+};
+
+const getUserRoles = (game: Game) => {
+  game.subscribeToEvent(
+    "spaceSetsSpaceMembers",
+    ({ spaceSetsSpaceMembers }, context) => {
+      spaceRoles[game?.spaceId?.split("\\")[0]!] =
+        spaceSetsSpaceMembers.members;
+    }
+  );
 };
 
 const interceptEngineEvents = ({ engine }: Game) => {
@@ -125,6 +141,22 @@ const interceptEngineEvents = ({ engine }: Game) => {
     wsOpen(evt);
   };
 };
+function subscribeToDisconnection(game: Game) {
+  game.subscribeToConnection((connected: boolean) => {
+    if (!connected) {
+      console.log("❓ Connection Lost");
+      if (!spaceConnectionTimers?.[game.spaceId!])
+        spaceConnectionTimers[game.spaceId!] = setTimeout(
+          () => game.connect(),
+          1000 * 60 * 30
+        );
+      console.log("🪖 Adding reconnection attempt.", spaceConnectionTimers);
+    } else {
+      delete spaceConnectionTimers?.[game.spaceId!];
+    }
+  });
+}
+
 function setBotUsername(game: Game, name: string) {
   game.enter({ isNpc: true, name });
   setTimeout(() => game.exit(), 2000);
