@@ -22,7 +22,7 @@ export const BOT_OUTFIT: DBOutfit = {
   hat: "",
   glasses: "",
   other: "",
-  costume: "dsfv7m1m15xasfdBoIEX",
+  costume: "1AIdA4wPmTL5QOgSYyqo",
   mobility: "",
   jacket: ""
 };
