@@ -1,8 +1,4 @@
-import {
-  getGlobalConfig,
-  getGlobalFeatures,
-  getSpaceFeatures
-} from "./../database/database";
+import { getGlobalFeatures, getSpaceFeatures } from "./../database/database";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
  * or which may be referenced by subscriptions.
@@ -19,14 +15,11 @@ require("dotenv").config();
     Note: spaceId here is the randomly generated characters before the space name, ie spaceId\\spaceName, not both parts
     [spaceId:string]:{playerId:{currentlyEquippedWearables:{...},name:string,roles:{DEFAULT_BUILDER:boolean,OWNER:boolean,DEFAULT_MOD:boolean}}}
 */
-import { spaceRoles, spaceCapacities } from "./connection";
-import {
-  handleNuggets,
-  handleOnboarding,
-  hasPlayerBeenNuggetted
-} from "./other";
-import { triggerChatWebhook } from "./webhooks";
 import { accessRequestsUpdatedListener } from "../features/auto-join-allow/auto-allow";
+import { spaceCapacities, spaceRoles } from "./connection";
+import { handleOnboarding } from "./other";
+import { triggerChatWebhook } from "./webhooks";
+import { handleNuggets } from "../features/learning-nuggets/learning-nuggets";
 
 export const subscribeToEvents = async (game: Game): Promise<void> => {
   // const COMMON_CONFIG = await getGlobalConfig();
@@ -54,14 +47,13 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
     async ({ playerJoins }, { playerId, player }) => {
       if (!playerId || playerId === game.engine?.clientUid) return;
 
+      console.log(`Player ${playerId} joined space ${game.spaceId!}`);
+
       const playerData: PlayerData = await getPlayerData({
         clientId: "main-client",
         spaceId: game.spaceId!,
         playerId
       });
-
-      console.log(`Player ${playerId} joined space ${game.spaceId!}`);
-      console.log(`PlayerData: ${JSON.stringify(playerData)}`);
 
       if (!playerData?.lastOnboarded) {
         await handleOnboarding(
@@ -76,21 +68,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
         COMMON_FEATURES?.["learning-nuggets"] ||
         spaceFeatures?.["learning-nuggets"]
       ) {
-        const hasBeenNuggeted = hasPlayerBeenNuggetted(
-          playerData,
-          spaceConfig?.COOLDOWN_INTERVAL
-        );
-        if (!hasBeenNuggeted) {
-          console.log(`Issuing nugget 🍗🐔 for ${playerId}`);
-          await handleNuggets(
-            game,
-            {
-              playerId: playerId,
-              mapId: player?.map!
-            },
-            spaceConfig
-          );
-        }
+        handleNuggets(game, player!, playerData, spaceConfig);
       }
     }
   );
@@ -126,12 +104,13 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
 
     if (isCommand) {
       console.log("🤖 CHAT MESSAGE IS A COMMAND, PARSING CHAT MESSAGE");
-      const parser = isCommand.groups!.command.split(" ");
+      const { command } = isCommand.groups!;
+      const parser = command.split(" ");
       return checkForCommand({
         game,
         parser,
         playerSendsCommand: {
-          command: isCommand.groups!.command,
+          command,
           encId: NaN
         },
         context: {
