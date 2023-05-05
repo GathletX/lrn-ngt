@@ -26,6 +26,7 @@ import {
   hasPlayerBeenNuggetted
 } from "./other";
 import { triggerChatWebhook } from "./webhooks";
+import { accessRequestsUpdatedListener } from "../features/auto-join-allow/auto-allow";
 
 export const subscribeToEvents = async (game: Game): Promise<void> => {
   // const COMMON_CONFIG = await getGlobalConfig();
@@ -149,6 +150,16 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       triggerChatWebhook(game, message, player);
     }
   });
+
+  if (
+    COMMON_FEATURES?.["auto-join-allow"] ||
+    spaceFeatures?.["auto-join-allow"]
+  ) {
+    /* -------------------------------------------------------------------------- */
+    /*              sets up subscription for handling Access Requests             */
+    /* -------------------------------------------------------------------------- */
+    accessRequestsUpdatedListener(game);
+  }
 };
 
 /**
