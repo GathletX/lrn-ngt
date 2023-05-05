@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@gathertown/gather-game-client": "^38.0.1",
+    "@gathertown/gather-game-client": "^40.0.0",
     "axios": "^1.1.3",
     "dotenv": "^16.0.2",
     "firebase": "^9.15.0",

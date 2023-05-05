@@ -12,6 +12,7 @@ export interface PlayerQueryConfig {
 export interface SpaceFeatures {
   "learning-nuggets": boolean;
   "open-ai": boolean;
+  "auto-join-allow": boolean;
 }
 export interface SpaceConfig {
   SPREADSHEET_ID?: string;
