@@ -48,17 +48,26 @@ export const connectToSpaces = (commands?: string[]): Promise<GameArray> => {
 
         getSpaceCapacity(game);
         getUserRoles(game);
-        subscribeToDisconnection(game);
+        const disconnectionHandler = subscribeToDisconnection(game);
         await enterAsNPC(game);
         game.connect();
-        await game.waitForInit();
-        interceptEngineEvents(game);
-        // setBotUsername(game, NPC_NAME);
+        try {
+          await promiseTimeout(
+            game.waitForInit(),
+            15 * 1000, //15 seconds
+            `Failed to initialize game connection to space: ${game.spaceId!}`
+          );
+          interceptEngineEvents(game);
+        } catch (error) {
+          console.error("⛔", error);
+          disconnectionHandler();
+          game.disconnect();
+          continue;
+        }
         console.log(`connected to ${parser[5]}`);
         games[parser[4]] = game;
       }
     } catch (error) {
-      console.log(error);
       reject(error);
     }
 
@@ -141,8 +150,9 @@ const interceptEngineEvents = ({ engine }: Game) => {
     wsOpen(evt);
   };
 };
-function subscribeToDisconnection(game: Game) {
-  game.subscribeToConnection((connected: boolean) => {
+
+function subscribeToDisconnection(game: Game): () => void {
+  return game.subscribeToConnection((connected: boolean) => {
     if (!connected) {
       console.log("❓ Connection Lost");
       if (!spaceConnectionTimers?.[game.spaceId!])
@@ -157,7 +167,12 @@ function subscribeToDisconnection(game: Game) {
   });
 }
 
-function setBotUsername(game: Game, name: string) {
-  game.enter({ isNpc: true, name });
-  setTimeout(() => game.exit(), 2000);
-}
+const promiseTimeout = (
+  prom: Promise<any>,
+  time: number,
+  failReason?: string
+) =>
+  Promise.race([
+    prom,
+    new Promise((_r, rej) => setTimeout(() => rej(failReason), time))
+  ]);
