@@ -121,9 +121,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       });
     }
 
-    console.log(
-      `🕊️ ${player.name} (${player.id}) sent chat to server: ${playerChats.contents}`
-    );
+    console.log(`🕊️ ${player.name} (${player.id}) sent chat to server`);
 
     if (COMMON_FEATURES?.["open-ai"] || spaceFeatures?.["open-ai"]) {
       triggerChatWebhook(game, message, player);
