@@ -15,6 +15,11 @@ export const initializeSpaceFeatures = async (game: Game) => {
     clientId: "main-client",
     spaceId: game.spaceId
   });
+  console.log(
+    "☢ Initialized space features",
+    game.spaceId,
+    SPACE_FEATURES[game.spaceId!]
+  );
 };
 
 export const isFeatureEnabled = (
@@ -22,6 +27,7 @@ export const isFeatureEnabled = (
   featureToken: FeatureTokens
 ): boolean => {
   return (
-    COMMON_FEATURES[featureToken] || SPACE_FEATURES[game.spaceId!][featureToken]
+    COMMON_FEATURES[featureToken] ||
+    SPACE_FEATURES[game.spaceId!]?.[featureToken]
   );
 };
