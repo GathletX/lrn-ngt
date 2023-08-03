@@ -1,17 +1,21 @@
 import { commandList } from "./config/commands";
 import * as connection from "./functions/connection";
 import { subscribeToEvents } from "./functions/subscriptions";
+import {
+  initializeGlobalFeatures,
+  initializeSpaceFeatures
+} from "./functions/utils";
 global.WebSocket = require("isomorphic-ws");
 
 const run = async (): Promise<void> => {
-  //const commands:string[] = ["example"]; //registers /example as a command
-  //const userState:string = ""; //'invis' or 'npc'
+  await initializeGlobalFeatures();
 
   const games = await connection.connectToSpaces(
     Object.keys(commandList) ?? undefined
   );
 
   for (let id in games) {
+    await initializeSpaceFeatures(games[id]);
     subscribeToEvents(games[id]);
   }
 };
