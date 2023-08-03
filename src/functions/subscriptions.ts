@@ -1,3 +1,5 @@
+import { FeatureTokens } from "./../database/database.model";
+import { isFeatureEnabled, initializeGlobalFeatures } from "./utils";
 import { getGlobalFeatures, getSpaceFeatures } from "./../database/database";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
@@ -20,16 +22,12 @@ import { spaceCapacities, spaceRoles } from "./connection";
 import { handleOnboarding } from "./other";
 import { triggerChatWebhook } from "./webhooks";
 import { handleNuggets } from "../features/learning-nuggets/learning-nuggets";
+import { liftInteractionListener } from "../features/lift/lift";
 
 export const subscribeToEvents = async (game: Game): Promise<void> => {
   // const COMMON_CONFIG = await getGlobalConfig();
   //todo not ideal... needs to be updated when the firebase configs change
-  const COMMON_FEATURES = await getGlobalFeatures();
   const spaceConfig = await getSpaceConfig({
-    clientId: "main-client",
-    spaceId: game.engine!.spaceId
-  });
-  const spaceFeatures = await getSpaceFeatures({
     clientId: "main-client",
     spaceId: game.engine!.spaceId
   });
@@ -64,10 +62,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
         );
       }
 
-      if (
-        COMMON_FEATURES?.["learning-nuggets"] ||
-        spaceFeatures?.["learning-nuggets"]
-      ) {
+      if (isFeatureEnabled(game, FeatureTokens.LEARNING_NUGGETS)) {
         handleNuggets(game, player!, playerData, spaceConfig);
       }
     }
@@ -123,19 +118,19 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
 
     console.log(`🕊️ ${player.name} (${player.id}) sent chat to server`);
 
-    if (COMMON_FEATURES?.["open-ai"] || spaceFeatures?.["open-ai"]) {
+    if (isFeatureEnabled(game, FeatureTokens.OPEN_AI)) {
       triggerChatWebhook(game, message, player);
     }
   });
 
-  if (
-    COMMON_FEATURES?.["auto-join-allow"] ||
-    spaceFeatures?.["auto-join-allow"]
-  ) {
-    /* -------------------------------------------------------------------------- */
-    /*              sets up subscription for handling Access Requests             */
-    /* -------------------------------------------------------------------------- */
+  if (isFeatureEnabled(game, FeatureTokens.AUTO_JOIN_ALLOW)) {
+    /* sets up subscription for handling Access Requests  */
     accessRequestsUpdatedListener(game);
+  }
+
+  if (isFeatureEnabled(game, FeatureTokens.ELEVATOR)) {
+    /* sets up subscription for handling Lift Interactions */
+    liftInteractionListener(game);
   }
 };
 
