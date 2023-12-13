@@ -9,11 +9,16 @@ export interface PlayerQueryConfig {
   playerId: string;
 }
 
-export interface SpaceFeatures {
-  "learning-nuggets": boolean;
-  "open-ai": boolean;
-  "auto-join-allow": boolean;
+export enum FeatureTokens {
+  LEARNING_NUGGETS = "learning-nuggets",
+  OPEN_AI = "open-ai",
+  AUTO_JOIN_ALLOW = "auto-join-allow",
+  ELEVATOR = "elevator"
 }
+
+export type SpaceFeatures = {
+  [key in FeatureTokens]: boolean;
+};
 export interface SpaceConfig {
   SPREADSHEET_ID?: string;
   NPC_NAME?: string;
