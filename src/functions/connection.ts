@@ -1,4 +1,4 @@
-import { NPC_NAME } from "./../config/config";
+import { EMPTY_OUTFIT, NPC_NAME } from "./../config/config";
 import { getSpaceConfig } from "./../database/database";
 /**
  * The connections file handles all of the websocket connection to the spaces.
@@ -9,7 +9,7 @@ import {
   Game,
   PlayerInitInfo,
   ServerClientEvent,
-  SpaceMemberInfo
+  SpaceMemberInfo,
 } from "@gathertown/gather-game-client";
 import { API_KEY, BOT_OUTFIT, SPACE_URLS } from "../config/config";
 
@@ -88,12 +88,17 @@ const registerCommands = (game: Game, commands: string[]): void => {
 const enterAsNPC = async (game: Game): Promise<void> => {
   const spaceConfig = await getSpaceConfig({
     clientId: "main-client",
-    spaceId: game.engine?.spaceId
+    spaceId: game.engine?.spaceId,
   });
 
   const config: PlayerInitInfo = {
     name: spaceConfig?.NPC_NAME ?? NPC_NAME,
-    currentlyEquippedWearables: BOT_OUTFIT
+    currentlyEquippedWearables:
+      (spaceConfig?.NPC_OUTFIT && {
+        ...EMPTY_OUTFIT,
+        ...spaceConfig.NPC_OUTFIT,
+      }) ??
+      BOT_OUTFIT,
   };
 
   game.subscribeToConnection((connected: boolean) => {
@@ -174,5 +179,5 @@ const promiseTimeout = (
 ) =>
   Promise.race([
     prom,
-    new Promise((_r, rej) => setTimeout(() => rej(failReason), time))
+    new Promise((_r, rej) => setTimeout(() => rej(failReason), time)),
   ]);

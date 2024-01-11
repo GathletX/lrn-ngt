@@ -26,3 +26,18 @@ export const BOT_OUTFIT: DBOutfit = {
   mobility: "vFCPcTvWvTi04gj0hKkd",
   jacket: "IXbl8e_2QnafaPPO3fk8",
 };
+
+export const EMPTY_OUTFIT: DBOutfit = {
+  skin: "",
+  hair: "",
+  facial_hair: "",
+  top: "",
+  bottom: "",
+  shoes: "",
+  hat: "",
+  glasses: "",
+  other: "",
+  costume: "",
+  mobility: "",
+  jacket: "",
+};
