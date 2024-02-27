@@ -1,4 +1,4 @@
-import { Game, Player } from "@gathertown/gather-game-client";
+import { Game } from "@gathertown/gather-game-client";
 import axios from "axios";
 
 export async function triggerChatWebhook(
@@ -16,7 +16,8 @@ export async function triggerChatWebhook(
       message,
       playerName: player.name,
       playerId: player.id,
-      spaceId: game.spaceId!
+      roomName: game.partialMaps?.[player.mapId]?.name ?? "",
+      spaceId: game.spaceId!,
     })
     .then((response) => {
       console.log(
@@ -30,7 +31,7 @@ export async function triggerChatWebhook(
       console.log(`🤖 The bot responded:`, openAIData);
       game.chat(player.id, [], player.mapId, {
         contents: `
-        ${openAIData.trim()}`
+        ${openAIData.trim()}`,
       });
     })
     .catch((error) =>
@@ -49,7 +50,7 @@ function sendImmediateFeedback(
   player: { id: string; name: string; mapId: string }
 ) {
   game.chat(player.id, [], player.mapId, {
-    contents: "🤖 Prompt received!"
+    contents: "🤖 Prompt received!",
   });
 }
 
@@ -62,7 +63,7 @@ function setupDelayedFeedback(
       game.chat(player.id, [], player.mapId, {
         contents: `
         Thinking... Blip, Blup, Blop...
-        `
+        `,
       }),
     2500
   );
@@ -71,7 +72,7 @@ function setupDelayedFeedback(
       game.chat(player.id, [], player.mapId, {
         contents: `
         Just a little longer...
-        `
+        `,
       }),
     5000
   );
