@@ -1,6 +1,6 @@
-import { FeatureTokens, SpaceFeatures } from "./../database/database.model";
 import { Game } from "@gathertown/gather-game-client";
 import { getGlobalFeatures, getSpaceFeatures } from "../database/database";
+import { FeatureTokens, SpaceFeatures } from "./../database/database.model";
 
 const SPACE_FEATURES: { [spaceId: string]: SpaceFeatures } = {};
 let COMMON_FEATURES: Partial<SpaceFeatures> = {};
@@ -13,7 +13,7 @@ export const initializeSpaceFeatures = async (game: Game) => {
   if (SPACE_FEATURES[game.spaceId!]) return;
   SPACE_FEATURES[game.spaceId!] = await getSpaceFeatures({
     clientId: "main-client",
-    spaceId: game.spaceId
+    spaceId: game.spaceId,
   });
   console.log(
     "☢ Initialized space features",
@@ -25,9 +25,7 @@ export const initializeSpaceFeatures = async (game: Game) => {
 export const isFeatureEnabled = (
   game: Game,
   featureToken: FeatureTokens
-): boolean => {
-  return (
-    COMMON_FEATURES[featureToken] ||
-    SPACE_FEATURES[game.spaceId!]?.[featureToken]
-  );
-};
+): boolean =>
+  SPACE_FEATURES[game.spaceId!]?.[featureToken] ??
+  COMMON_FEATURES[featureToken] ??
+  false;
