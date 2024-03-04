@@ -101,9 +101,15 @@ const enterAsNPC = async (game: Game): Promise<void> => {
       BOT_OUTFIT,
   };
 
+  console.log(`${game.spaceId}: EnterAsNpc`, spaceConfig, config);
+
   game.subscribeToConnection((connected: boolean) => {
     if (connected) {
       game.enter({ isNpc: true, ...config });
+
+      if (config.currentlyEquippedWearables) {
+        game.setCurrentlyEquippedWearables(config.currentlyEquippedWearables);
+      }
     }
   });
 };
