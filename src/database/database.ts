@@ -6,14 +6,16 @@ import {
   DataSnapshot,
   get,
   getDatabase,
+  onValue,
   ref,
-  update
+  Unsubscribe,
+  update,
 } from "firebase/database";
 import {
   PlayerData,
   PlayerQueryConfig,
   SpaceConfig,
-  SpaceFeatures
+  SpaceFeatures,
 } from "./database.model";
 
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -26,7 +28,7 @@ const firebaseConfig = {
   projectId: "lrn-ngt",
   storageBucket: "lrn-ngt.appspot.com",
   messagingSenderId: "355875343024",
-  appId: "1:355875343024:web:7693a3c7b9d40a84d78975"
+  appId: "1:355875343024:web:7693a3c7b9d40a84d78975",
 };
 
 // Initialize Firebase
@@ -73,7 +75,7 @@ export const getPlayerData = (
 
 export const getSpaceConfig = ({
   spaceId,
-  clientId
+  clientId,
 }: Partial<PlayerQueryConfig>): Promise<SpaceConfig> => {
   try {
     return get(ref(database, `${clientId}/spaces/${spaceId}/config`)).then(
@@ -86,7 +88,7 @@ export const getSpaceConfig = ({
 };
 export const getSpaceFeatures = ({
   spaceId,
-  clientId
+  clientId,
 }: Partial<PlayerQueryConfig>): Promise<SpaceFeatures> => {
   try {
     return get(ref(database, `${clientId}/spaces/${spaceId}/features`)).then(
@@ -119,6 +121,17 @@ export const getGlobalFeatures = (): Promise<Partial<SpaceFeatures>> => {
     return Promise.reject();
   }
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                  listeners                                 */
+/* -------------------------------------------------------------------------- */
+export const setupDatabaseListener = async (
+  path: string,
+  callback: <T>(value?: T | any) => void | Promise<void>
+): Promise<Unsubscribe> =>
+  onValue(ref(database, `${path}`), (snapshot: DataSnapshot) =>
+    callback(snapshot.val())
+  );
 
 // export const pushToArray = async (data:any): Promise<void> => {
 //   const dbRef = ref(database, `${DatabaseGroupings}/${data.playerId}`);

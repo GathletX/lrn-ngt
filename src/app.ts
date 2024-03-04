@@ -3,7 +3,8 @@ import * as connection from "./functions/connection";
 import { subscribeToEvents } from "./functions/subscriptions";
 import {
   initializeGlobalFeatures,
-  initializeSpaceFeatures
+  initializeSpaceConfig,
+  initializeSpaceFeatures,
 } from "./functions/utils";
 global.WebSocket = require("isomorphic-ws");
 
@@ -16,6 +17,7 @@ const run = async (): Promise<void> => {
 
   for (let id in games) {
     await initializeSpaceFeatures(games[id]);
+    await initializeSpaceConfig(games[id]);
     subscribeToEvents(games[id]);
   }
 };

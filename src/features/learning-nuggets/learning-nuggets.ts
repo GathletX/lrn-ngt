@@ -1,7 +1,7 @@
 import { Game, Player } from "@gathertown/gather-game-client";
-import { PlayerData, SpaceConfig } from "../../database/database.model";
 import { DEFAULT_SPREADSHEET } from "../../config/config";
 import { writePlayerData } from "../../database/database";
+import { PlayerData, SpaceConfig } from "../../database/database.model";
 import { sheets } from "../../functions/googleapi";
 import { LearningNugget } from "../../models/nuggets.model";
 
@@ -9,7 +9,7 @@ export const handleNuggets = async (
   game: Game,
   { id, map }: Partial<Player>,
   playerData: PlayerData,
-  spaceConfig: SpaceConfig
+  spaceConfig: SpaceConfig | undefined
 ) => {
   const hasBeenNuggeted = hasPlayerBeenNuggetted(
     playerData,
@@ -21,7 +21,7 @@ export const handleNuggets = async (
       game,
       {
         playerId: id!,
-        mapId: map!
+        mapId: map!,
       },
       spaceConfig
     );
@@ -54,7 +54,7 @@ async function issueNuggets(
 ) {
   const { data } = await sheets.spreadsheets.values.get({
     spreadsheetId: spaceConfig?.SPREADSHEET_ID ?? DEFAULT_SPREADSHEET,
-    range: "A2:B"
+    range: "A2:B",
   });
 
   if (!data?.values) return;
@@ -63,7 +63,7 @@ async function issueNuggets(
   const organizedData: LearningNugget[] = data.values
     .map(([category, content]: any[]) => ({
       category,
-      content
+      content,
     }))
     .filter((nugget: LearningNugget) => nugget.content);
 
@@ -79,17 +79,17 @@ async function issueNuggets(
       ${randomNugget.category}:
       ${randomNugget.content}
 
-      -------------------------------`
+      -------------------------------`,
   });
 
   await writePlayerData(
     {
       clientId: "main-client",
       spaceId: game.engine!.spaceId,
-      playerId: playerData.playerId
+      playerId: playerData.playerId,
     },
     {
-      lastNugget: Date.now()
+      lastNugget: Date.now(),
     }
   );
 }

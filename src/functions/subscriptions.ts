@@ -1,6 +1,5 @@
 import { FeatureTokens } from "./../database/database.model";
-import { isFeatureEnabled, initializeGlobalFeatures } from "./utils";
-import { getGlobalFeatures, getSpaceFeatures } from "./../database/database";
+import { SPACE_CONFIGS, isFeatureEnabled } from "./utils";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
  * or which may be referenced by subscriptions.
@@ -8,7 +7,7 @@ import { getGlobalFeatures, getSpaceFeatures } from "./../database/database";
 
 import { Game } from "@gathertown/gather-game-client";
 import { checkForCommand } from "../config/commands";
-import { getPlayerData, getSpaceConfig } from "../database/database";
+import { getPlayerData } from "../database/database";
 import { PlayerData } from "../database/database.model";
 require("dotenv").config();
 
@@ -18,19 +17,14 @@ require("dotenv").config();
     [spaceId:string]:{playerId:{currentlyEquippedWearables:{...},name:string,roles:{DEFAULT_BUILDER:boolean,OWNER:boolean,DEFAULT_MOD:boolean}}}
 */
 import { accessRequestsUpdatedListener } from "../features/auto-join-allow/auto-allow";
+import { handleNuggets } from "../features/learning-nuggets/learning-nuggets";
+import { liftInteractionListener } from "../features/lift/lift";
 import { spaceCapacities, spaceRoles } from "./connection";
 import { handleOnboarding } from "./other";
 import { triggerChatWebhook } from "./webhooks";
-import { handleNuggets } from "../features/learning-nuggets/learning-nuggets";
-import { liftInteractionListener } from "../features/lift/lift";
 
 export const subscribeToEvents = async (game: Game): Promise<void> => {
-  // const COMMON_CONFIG = await getGlobalConfig();
-  //todo not ideal... needs to be updated when the firebase configs change
-  const spaceConfig = await getSpaceConfig({
-    clientId: "main-client",
-    spaceId: game.engine!.spaceId
-  });
+  const spaceConfig = SPACE_CONFIGS[game.spaceId!];
 
   game.subscribeToEvent(
     "playerSendsCommand",
@@ -50,7 +44,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
       const playerData: PlayerData = await getPlayerData({
         clientId: "main-client",
         spaceId: game.spaceId!,
-        playerId
+        playerId,
       });
 
       if (!playerData?.lastOnboarded) {
@@ -84,7 +78,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
     const player: { id: string; name: string; mapId: string } = {
       id: playerChats.senderId,
       name: playerChats.senderName,
-      mapId: context.player?.map!
+      mapId: context.player?.map!,
     };
 
     //this means it's not a message directed TO the bot, but a message for EVERYONE or NEARBY
@@ -106,19 +100,21 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
         parser,
         playerSendsCommand: {
           command,
-          encId: NaN
+          encId: NaN,
         },
         context: {
           spaceId: context.spaceId,
           player: context.player,
-          playerId: player.id
-        }
+          playerId: player.id,
+        },
       });
     }
 
     console.log(`🕊️ ${player.name} (${player.id}) sent chat to server`);
 
-    if (isFeatureEnabled(game, FeatureTokens.OPEN_AI)) {
+    const AI_CHAT_ENABLED = isFeatureEnabled(game, FeatureTokens.OPEN_AI);
+    console.log("AI CHAT ENABLED", game.spaceId, AI_CHAT_ENABLED);
+    if (AI_CHAT_ENABLED) {
       triggerChatWebhook(game, message, player);
     }
   });
@@ -147,7 +143,7 @@ enum Role {
   OWNER,
   DEFAULT_MOD,
   DEFAULT_BUILDER,
-  MEMBER
+  MEMBER,
 }
 
 const checkUserPermissions = (
@@ -164,15 +160,11 @@ const checkUserPermissions = (
   switch (operand) {
     case "AND":
       return !check.includes(false);
-      break;
     case "OR":
       return check.includes(true);
-      break;
     case "NOT":
       return !check.includes(true);
-      break;
     default:
       return !check.includes(false);
-      break;
   }
 };

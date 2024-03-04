@@ -1,8 +1,14 @@
 import { Game } from "@gathertown/gather-game-client";
-import { getGlobalFeatures, getSpaceFeatures } from "../database/database";
-import { FeatureTokens, SpaceFeatures } from "./../database/database.model";
+import { EMPTY_OUTFIT } from "../config/config";
+import { getGlobalFeatures, setupDatabaseListener } from "../database/database";
+import {
+  FeatureTokens,
+  SpaceConfig,
+  SpaceFeatures,
+} from "./../database/database.model";
 
-const SPACE_FEATURES: { [spaceId: string]: SpaceFeatures } = {};
+export const SPACE_FEATURES: { [spaceId: string]: Partial<SpaceFeatures> } = {};
+export const SPACE_CONFIGS: { [spaceId: string]: Partial<SpaceConfig> } = {};
 let COMMON_FEATURES: Partial<SpaceFeatures> = {};
 
 export const initializeGlobalFeatures = async () => {
@@ -11,14 +17,41 @@ export const initializeGlobalFeatures = async () => {
 
 export const initializeSpaceFeatures = async (game: Game) => {
   if (SPACE_FEATURES[game.spaceId!]) return;
-  SPACE_FEATURES[game.spaceId!] = await getSpaceFeatures({
-    clientId: "main-client",
-    spaceId: game.spaceId,
-  });
-  console.log(
-    "☢ Initialized space features",
-    game.spaceId,
-    SPACE_FEATURES[game.spaceId!]
+  await setupDatabaseListener(
+    `/main-client/spaces/${game.engine?.spaceId}/features`,
+    (data?: Partial<SpaceFeatures>) => {
+      SPACE_FEATURES[game.spaceId!] = data ? data : {};
+      console.log(
+        "🪶 updated space features",
+        game.spaceId,
+        SPACE_FEATURES[game.spaceId!]
+      );
+    }
+  );
+};
+
+export const initializeSpaceConfig = async (game: Game) => {
+  if (SPACE_FEATURES[game.spaceId!]) return;
+  await setupDatabaseListener(
+    `/main-client/spaces/${game.engine?.spaceId}/config`,
+    async (data?: Partial<SpaceConfig>) => {
+      SPACE_CONFIGS[game.spaceId!] = data ? data : {};
+      console.log(
+        "🔧 updated space config",
+        game.spaceId,
+        SPACE_CONFIGS[game.spaceId!]
+      );
+
+      if (data?.NPC_NAME) {
+        game.setName(data.NPC_NAME);
+      }
+      if (data?.NPC_OUTFIT) {
+        game.setCurrentlyEquippedWearables({
+          ...EMPTY_OUTFIT,
+          ...data.NPC_OUTFIT,
+        });
+      }
+    }
   );
 };
 

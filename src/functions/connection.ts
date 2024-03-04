@@ -85,11 +85,13 @@ const registerCommands = (game: Game, commands: string[]): void => {
   });
 };
 
-const enterAsNPC = async (game: Game): Promise<void> => {
+export const enterAsNPC = async (game: Game): Promise<void> => {
   const spaceConfig = await getSpaceConfig({
     clientId: "main-client",
     spaceId: game.engine?.spaceId,
   });
+
+  console.log("CONFIG", spaceConfig);
 
   const config: PlayerInitInfo = {
     name: spaceConfig?.NPC_NAME ?? NPC_NAME,
@@ -107,9 +109,9 @@ const enterAsNPC = async (game: Game): Promise<void> => {
     if (connected) {
       game.enter({ isNpc: true, ...config });
 
-      if (config.currentlyEquippedWearables) {
-        game.setCurrentlyEquippedWearables(config.currentlyEquippedWearables);
-      }
+      // if (config.currentlyEquippedWearables) {
+      //   game.setCurrentlyEquippedWearables(config.currentlyEquippedWearables);
+      // }
     }
   });
 };
