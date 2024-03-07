@@ -1,5 +1,5 @@
 import { FeatureTokens } from "./../database/database.model";
-import { SPACE_CONFIGS, isFeatureEnabled } from "./utils";
+import { getSpaceConfigValue, isFeatureEnabled } from "./utils";
 /**
  * Use this File to organize functions which pertain directly to subscriptions,
  * or which may be referenced by subscriptions.
@@ -24,8 +24,6 @@ import { handleOnboarding } from "./other";
 import { triggerChatWebhook } from "./webhooks";
 
 export const subscribeToEvents = async (game: Game): Promise<void> => {
-  const spaceConfig = SPACE_CONFIGS[game.spaceId!];
-
   game.subscribeToEvent(
     "playerSendsCommand",
     ({ playerSendsCommand }, context) => {
@@ -52,12 +50,12 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
           game,
           playerId,
           player?.map!,
-          spaceConfig?.ONBOARDING_MESSAGE
+          getSpaceConfigValue(game.spaceId!, "ONBOARDING_MESSAGE") ?? undefined
         );
       }
 
       if (isFeatureEnabled(game, FeatureTokens.LEARNING_NUGGETS)) {
-        handleNuggets(game, player!, playerData, spaceConfig);
+        handleNuggets(game, player!, playerData);
       }
     }
   );
@@ -113,7 +111,7 @@ export const subscribeToEvents = async (game: Game): Promise<void> => {
     console.log(`🕊️ ${player.name} (${player.id}) sent chat to server`);
 
     const AI_CHAT_ENABLED = isFeatureEnabled(game, FeatureTokens.OPEN_AI);
-    console.log("AI CHAT ENABLED", game.spaceId, AI_CHAT_ENABLED);
+
     if (AI_CHAT_ENABLED) {
       triggerChatWebhook(game, message, player);
     }

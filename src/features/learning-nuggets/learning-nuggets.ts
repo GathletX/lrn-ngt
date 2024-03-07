@@ -1,30 +1,26 @@
 import { Game, Player } from "@gathertown/gather-game-client";
 import { DEFAULT_SPREADSHEET } from "../../config/config";
 import { writePlayerData } from "../../database/database";
-import { PlayerData, SpaceConfig } from "../../database/database.model";
+import { PlayerData } from "../../database/database.model";
 import { sheets } from "../../functions/googleapi";
+import { getSpaceConfigValue } from "../../functions/utils";
 import { LearningNugget } from "../../models/nuggets.model";
 
 export const handleNuggets = async (
   game: Game,
   { id, map }: Partial<Player>,
-  playerData: PlayerData,
-  spaceConfig: SpaceConfig | undefined
+  playerData: PlayerData
 ) => {
   const hasBeenNuggeted = hasPlayerBeenNuggetted(
     playerData,
-    spaceConfig?.COOLDOWN_INTERVAL
+    getSpaceConfigValue(game.spaceId!, "COOLDOWN_INTERVAL") ?? undefined
   );
   if (!hasBeenNuggeted) {
     console.log(`Issuing nugget 🍗🐔 for ${id}`);
-    await issueNuggets(
-      game,
-      {
-        playerId: id!,
-        mapId: map!,
-      },
-      spaceConfig
-    );
+    await issueNuggets(game, {
+      playerId: id!,
+      mapId: map!,
+    });
   }
 };
 
@@ -49,11 +45,12 @@ async function issueNuggets(
   playerData: {
     playerId: string;
     mapId: string;
-  },
-  spaceConfig: SpaceConfig | undefined
+  }
 ) {
   const { data } = await sheets.spreadsheets.values.get({
-    spreadsheetId: spaceConfig?.SPREADSHEET_ID ?? DEFAULT_SPREADSHEET,
+    spreadsheetId:
+      getSpaceConfigValue(game.spaceId!, "SPREADSHEET_ID") ??
+      DEFAULT_SPREADSHEET,
     range: "A2:B",
   });
 
@@ -74,7 +71,10 @@ async function issueNuggets(
   game.chat(playerData.playerId, [], playerData.mapId, {
     contents: `
       𝙃𝙞, ${game.players[playerData.playerId].name}.
-      ${spaceConfig?.CUSTOM_MESSAGE || "𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!"}
+      ${
+        getSpaceConfigValue(game.spaceId!, "CUSTOM_MESSAGE") ??
+        "𝙃𝙚𝙧𝙚'𝙨 𝙮𝙤𝙪𝙧 𝙙𝙖𝙞𝙡𝙮 𝙇𝙚𝙖𝙧𝙣𝙞𝙣𝙜 𝙉𝙪𝙜𝙜𝙚𝙩!"
+      }
 
       ${randomNugget.category}:
       ${randomNugget.content}

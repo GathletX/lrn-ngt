@@ -91,8 +91,6 @@ export const enterAsNPC = async (game: Game): Promise<void> => {
     spaceId: game.engine?.spaceId,
   });
 
-  console.log("CONFIG", spaceConfig);
-
   const config: PlayerInitInfo = {
     name: spaceConfig?.NPC_NAME ?? NPC_NAME,
     currentlyEquippedWearables:
